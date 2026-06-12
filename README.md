@@ -58,7 +58,7 @@ The normalized output is the primary result and can be used directly to compare 
 pip install .
 ```
 
-### From a built wheel / PyPI (once published)
+### From a built wheel / PyPI
 ```bash
 pip install ncontextmut
 ```
