@@ -3,7 +3,7 @@ nContextMut — Trinucleotide-context mutation analysis for multiple sequence al
 
 Author
 ------
-Navid Haghjoo
+Niloofar Haghjoo
 Email  : nhaghjoo@gmail.com
 GitHub : https://github.com/nrhaghjoo
 
@@ -31,7 +31,7 @@ from .core import (
 )
 
 __version__ = "1.0.0"
-__author__ = "Navid Haghjoo"
+__author__ = "Niloofar Haghjoo"
 __email__ = "nhaghjoo@gmail.com"
 
 __all__ = [

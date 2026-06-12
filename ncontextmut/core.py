@@ -3,7 +3,7 @@ nContextMut — Trinucleotide-context mutation analysis for multiple sequence al
 
 Author
 ------
-Navid Haghjoo
+Niloofar Haghjoo
 Email  : nhaghjoo@gmail.com
 GitHub : https://github.com/nrhaghjoo
 
@@ -63,7 +63,7 @@ from pathlib import Path
 import pandas as pd
 from Bio.Align import PairwiseAligner
 
-__author__ = "Navid Haghjoo"
+__author__ = "Niloofar Haghjoo"
 __email__ = "nhaghjoo@gmail.com"
 __version__ = "1.0.0"
 
