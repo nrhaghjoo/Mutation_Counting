@@ -2,6 +2,55 @@
 
 Trinucleotide-context mutation analysis tool for multiple sequence alignments (MSA).
 
+---
+
+## What does this pipeline do?
+
+Many mutational processes — such as APOBEC enzyme activity, UV damage, or replication errors — do not mutate nucleotides randomly. Instead, they preferentially target specific nucleotides **depending on the surrounding sequence context**. The most widely studied context is the **trinucleotide context**: the identity of the nucleotide immediately 5' (before) and 3' (after) the mutated position.
+
+For example, APOBEC enzymes preferentially cause `TCA → TTA` and `TCT → TTT` mutations. By counting mutations in their trinucleotide context, you can identify which mutational processes shaped a set of sequences.
+
+**nContextMut** takes a multiple sequence alignment (MSA) of nucleotide sequences and, for each sequence, quantifies how often each trinucleotide context mutates and into what. The pipeline runs in four steps:
+
+---
+
+### Step 1 — Build a consensus sequence
+
+A position-wise consensus is computed from the full alignment. At each column, the most frequent nucleotide is chosen as the consensus base, but only if it appears in at least `threshold` (default 60%) of sequences at that position. This consensus acts as the **reference** against which every individual sequence is compared.
+
+### Step 2 — Count trinucleotides per sequence
+
+For each sequence in the alignment, every overlapping window of three consecutive nucleotides (triplet) is counted. This produces a **trinucleotide frequency table** — essentially the "opportunity" each context had to be mutated. This is the denominator used in normalization later.
+
+### Step 3 — Identify and count mutations in context
+
+Each sequence is globally aligned to the consensus using pairwise alignment. Positions where the sequence differs from the consensus are identified as mutations. For each mutation, the tool records the **trinucleotide context** in both the reference (consensus) and the query (sequence), producing labels of the form:
+
+```
+ATC_AGC   →  middle base mutated from T to G, within context A[T→G]C
+```
+
+Mutations adjacent to alignment gaps are excluded to avoid artefacts from indels.
+
+### Step 4 — Normalize mutation counts
+
+Raw mutation counts are divided by the trinucleotide frequency of the reference context from Step 2. This corrects for the fact that some trinucleotide contexts are simply more common in the genome — a context that appears 1000 times and mutates 10 times is very different from one that appears 10 times and mutates 10 times. The result is a **normalized mutation spectrum** comparable across sequences of different lengths and compositions.
+
+---
+
+### Summary of outputs
+
+| Output file | What it contains |
+|---|---|
+| `_consensus_sequence.txt` | The reference consensus derived from the alignment |
+| `_triplet_counts.csv` | Raw trinucleotide frequencies per sequence (the opportunity table) |
+| `_mutation_counts.csv` | Raw counts of each reference→mutant trinucleotide context per sequence |
+| `_Normalized_counts.csv` | Mutation counts divided by trinucleotide frequency (the mutation spectrum) |
+
+The normalized output is the primary result and can be used directly to compare mutational signatures across samples, time points, or experimental conditions.
+
+---
+
 ## Installation
 
 ### From source (local)
