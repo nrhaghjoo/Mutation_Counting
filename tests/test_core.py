@@ -1,6 +1,6 @@
 """Basic tests for ncontextmut."""
 
-import pytest
+# import pytest
 from ncontextmut import all_strings_same_length, consensus_sequence, count_triplets, find_mutations
 
 

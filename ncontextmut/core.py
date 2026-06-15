@@ -528,18 +528,20 @@ def run_analysis(fasta_path, output_folder, output_prefix, consensus_threshold=0
             if "-" not in ref_ctx and "-" not in qry_ctx:
                 mutation_counts[virus][f"{ref_ctx}_{qry_ctx}"] += 1
 
-    mutation_df = pd.DataFrame.from_dict(mutation_counts, orient="index").fillna(0)
-    mutation_df.to_csv(output_folder / f"{output_prefix}_mutation_counts.csv")
+
 
     # --- Triplet counts ---
-    trimmed_consensus = trim_reference_by_query_gaps(aligned_ref, aligned_query).replace("-", "")
+        trimmed_consensus = trim_reference_by_query_gaps(aligned_ref, aligned_query).replace("-", "")
 
-    for NT in range(len(trimmed_consensus) - 2):  # Ensuring we have enough characters for a triplet
-        triplet = trimmed_consensus[NT:NT + 3]  # Extract 3 consecutive characters
-        triplet_counts[viruses[i]][triplet] += 1
+        for NT in range(len(trimmed_consensus) - 2):  # Ensuring we have enough characters for a triplet
+            triplet = trimmed_consensus[NT:NT + 3]  # Extract 3 consecutive characters
+            triplet_counts[viruses[virus]][triplet] += 1
 
     triplet_df = pd.DataFrame.from_dict(triplet_counts, orient="index").fillna(0)
     triplet_df.to_csv(output_folder / f"{output_prefix}_triplet_counts.csv")
+
+    mutation_df = pd.DataFrame.from_dict(mutation_counts, orient="index").fillna(0)
+    mutation_df.to_csv(output_folder / f"{output_prefix}_mutation_counts.csv")
 
     # --- Normalized counts ---
     common = mutation_df.index.intersection(triplet_df.index)
