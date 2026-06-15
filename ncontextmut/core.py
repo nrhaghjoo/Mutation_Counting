@@ -535,7 +535,7 @@ def run_analysis(fasta_path, output_folder, output_prefix, consensus_threshold=0
 
         for NT in range(len(trimmed_consensus) - 2):  # Ensuring we have enough characters for a triplet
             triplet = trimmed_consensus[NT:NT + 3]  # Extract 3 consecutive characters
-            triplet_counts[viruses[virus]][triplet] += 1
+            triplet_counts[virus][triplet] += 1
 
     triplet_df = pd.DataFrame.from_dict(triplet_counts, orient="index").fillna(0)
     triplet_df.to_csv(output_folder / f"{output_prefix}_triplet_counts.csv")
