@@ -368,6 +368,35 @@ def _build_aligner():
     aligner.extend_gap_score = -1
     return aligner
 
+def trim_reference_by_query_gaps(ref_aln: str, qry_aln: str) -> str:
+    """
+    ref_aln: aligned reference sequence (string)
+    qry_aln: aligned query sequence (string)
+
+    Returns: trimmed reference sequence based on leading/trailing gaps in query.
+    """
+
+    left_gaps = 0
+    for c in qry_aln:
+        if c == '-':
+            left_gaps += 1
+        else:
+            break
+
+    right_gaps = 0
+    for c in reversed(qry_aln):
+        if c == '-':
+            right_gaps += 1
+        else:
+            break
+
+    if right_gaps == 0:
+        trimmed = ref_aln[left_gaps:]
+    else:
+        trimmed = ref_aln[left_gaps: len(ref_aln) - right_gaps]
+
+    return trimmed
+
 
 # ---------------------------------------------------------------------------
 # Main pipeline
@@ -479,22 +508,15 @@ def run_analysis(fasta_path, output_folder, output_prefix, consensus_threshold=0
     consensus_path = output_folder / f"{output_prefix}_consensus_sequence.txt"
     consensus_path.write_text(consensus)
 
-    # --- Triplet counts ---
-    triplet_counts: dict[str, dict] = defaultdict(lambda: defaultdict(int))
-    for virus, seq_aligned in zip(viruses, msa):
-        seq = seq_aligned.replace("-", "")
-        for j in range(len(seq) - 2):
-            triplet = seq[j : j + 3]
-            triplet_counts[virus][triplet] += 1
-
-    triplet_df = pd.DataFrame.from_dict(triplet_counts, orient="index").fillna(0)
-    triplet_df.to_csv(output_folder / f"{output_prefix}_triplet_counts.csv")
 
     # --- Mutation counts ---
     aligner = _build_aligner()
+    # --- Triplet counts ---
+    triplet_counts: dict[str, dict] = defaultdict(lambda: defaultdict(int))
     mutation_counts: dict[str, dict] = defaultdict(lambda: defaultdict(int))
 
     for virus, seq_aligned in zip(viruses, msa):
+
         query = seq_aligned.replace("-", "")
         alignments = aligner.align(consensus, query)
         best = alignments[0]
@@ -508,6 +530,16 @@ def run_analysis(fasta_path, output_folder, output_prefix, consensus_threshold=0
 
     mutation_df = pd.DataFrame.from_dict(mutation_counts, orient="index").fillna(0)
     mutation_df.to_csv(output_folder / f"{output_prefix}_mutation_counts.csv")
+
+    # --- Triplet counts ---
+    trimmed_consensus = trim_reference_by_query_gaps(aligned_ref, aligned_query).replace("-", "")
+
+    for NT in range(len(trimmed_consensus) - 2):  # Ensuring we have enough characters for a triplet
+        triplet = trimmed_consensus[NT:NT + 3]  # Extract 3 consecutive characters
+        triplet_counts[viruses[i]][triplet] += 1
+
+    triplet_df = pd.DataFrame.from_dict(triplet_counts, orient="index").fillna(0)
+    triplet_df.to_csv(output_folder / f"{output_prefix}_triplet_counts.csv")
 
     # --- Normalized counts ---
     common = mutation_df.index.intersection(triplet_df.index)
