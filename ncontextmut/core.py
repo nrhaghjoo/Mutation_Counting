@@ -370,10 +370,41 @@ def _build_aligner():
 
 def trim_reference_by_query_gaps(ref_aln: str, qry_aln: str) -> str:
     """
-    ref_aln: aligned reference sequence (string)
-    qry_aln: aligned query sequence (string)
+    Trim an aligned reference sequence to the region covered by the query.
 
-    Returns: trimmed reference sequence based on leading/trailing gaps in query.
+    When a query sequence is shorter than the consensus reference, global
+    alignment introduces leading and/or trailing gaps in the query. Counting
+    trinucleotides across the full reference in those regions would inflate
+    the opportunity table with context that the query never actually covers.
+    This function removes those overhanging positions from the reference so
+    that triplet counting is restricted to the region the query truly spans.
+
+    Parameters
+    ----------
+    ref_aln : str
+        Aligned reference (consensus) sequence, as returned by the aligner.
+        May contain internal gap characters ('-').
+    qry_aln : str
+        Aligned query sequence of the same length as ``ref_aln``.
+        Leading and trailing '-' characters define the positions to trim.
+
+    Returns
+    -------
+    str
+        The reference sequence with the same leading and trailing columns
+        removed as there are gap characters at the ends of ``qry_aln``.
+        Internal gaps in either sequence are preserved unchanged.
+
+    Examples
+    --------
+    >>> trim_reference_by_query_gaps("ATCGATCG", "--CGATCG")
+    'CGATCG'
+
+    >>> trim_reference_by_query_gaps("ATCGATCG", "ATCGAT--")
+    'ATCGAT'
+
+    >>> trim_reference_by_query_gaps("ATCGATCG", "ATCGATCG")
+    'ATCGATCG'
     """
 
     left_gaps = 0
@@ -407,8 +438,20 @@ def run_analysis(fasta_path, output_folder, output_prefix, consensus_threshold=0
     Execute the full nContextMut pipeline on a FASTA MSA file.
 
     This is the main entry point for the analysis. It chains all steps —
-    consensus building, trinucleotide counting, mutation detection, and
-    normalisation — and writes four output files to ``output_folder``.
+    consensus building, pairwise alignment, trinucleotide counting,
+    mutation detection, and normalisation — and writes four output files
+    to ``output_folder``.
+
+    Trinucleotide counting strategy
+    --------------------------------
+    Rather than counting triplets directly on each raw sequence, the pipeline
+    first aligns every sequence to the consensus (global pairwise alignment),
+    then trims the consensus to the region actually covered by that sequence
+    (removing overhanging leading/trailing gap columns via
+    ``trim_reference_by_query_gaps``). Triplets are then counted on this
+    trimmed, gap-stripped consensus region. This ensures the opportunity table
+    reflects only the genomic context that each sequence genuinely spans,
+    avoiding inflation from regions where the sequence has no coverage.
 
     Parameters
     ----------

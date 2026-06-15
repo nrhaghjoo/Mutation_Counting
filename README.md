@@ -20,7 +20,9 @@ A position-wise consensus is computed from the full alignment. At each column, t
 
 ### Step 2 — Count trinucleotides per sequence
 
-For each sequence in the alignment, every overlapping window of three consecutive nucleotides (triplet) is counted. This produces a **trinucleotide frequency table** — essentially the "opportunity" each context had to be mutated. This is the denominator used in normalization later.
+Each sequence is globally aligned to the consensus. The consensus is then **trimmed** to the region actually covered by that sequence — removing any leading or trailing positions where the sequence has no coverage (i.e. where the alignment introduces terminal gaps in the query). Triplets are counted on this trimmed, gap-stripped consensus region.
+
+This produces a **trinucleotide frequency table** — the "opportunity" each context had to be mutated — that accurately reflects only the genomic region each sequence spans, avoiding inflation from uncovered regions.
 
 ### Step 3 — Identify and count mutations in context
 
